@@ -13,13 +13,13 @@ Manejo de Errores: Excepciones personalizadas para reglas de negocio y validaci�
 Lógica de Pedidos: Implementación de interfaz Calcular y gestión de detalles de pedido.
 
 🛠 Tecnologías Utilizadas
-Lenguaje: Java 26
+Lenguaje: Java 21.
 
 Base de Datos: SQLite
 
 Conector: SQLite-JDBC Driver
 
-Patrones de Diseño: Singleton (Conexión), DAO (lógica de acceso a datos).
+Patrones de Diseño: Singleton (Conexión)
 
 📂 Estructura del Proyecto
 Plaintext
