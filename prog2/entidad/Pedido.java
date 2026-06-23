@@ -34,22 +34,20 @@ public class Pedido extends Base implements Calcular {
         this.total = 0.0;
         this.estado = Estado.PENDIENTE;
     }
-
-    // Método OBLIGATORIO requerido por la consigna para agregar detalles
+    
+// Cada vez que agregamos un ítem, actualizamos el total general
     public void addDetallePedido(DetallePedido detalle) {
         if (detalle != null) {
             this.detalles.add(detalle);
-            // Cada vez que agregamos un ítem, actualizamos el total general
             this.total = calcularTotal();
         }
     }
 
-    // Implementación OBLIGATORIA de la interfaz Calculable
     @Override
     public Double calcularTotal() {
         Double sumaTotal = 0.0;
         for (DetallePedido detalle : detalles) {
-            if (!detalle.isEliminado()) { // Solo sumamos lo que no fue borrado lógicamente
+            if (!detalle.isEliminado()) { 
                 sumaTotal += detalle.getSubtotal();
             }
         }
