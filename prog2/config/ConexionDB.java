@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class ConexionDB {
-    // El archivo de la base de datos se creará en la raíz de tu proyecto con este nombre
+    // El archivo de la base de datos se creará en la raíz del proyecto con este nombre
     private static final String URL = "jdbc:sqlite:food_store.db";
     private static Connection conexion = null;
 
@@ -14,7 +14,7 @@ public class ConexionDB {
         try {
             if (conexion == null || conexion.isClosed()) {
                 Class.forName("org.sqlite.JDBC");
-                // Usamos una ruta absoluta para no dejar lugar a dudas
+               
                 java.io.File dbFile = new java.io.File("food_store.db");
                 String path = dbFile.getAbsolutePath();
                 System.out.println("DEBUG: La base de datos está en: " + path);
@@ -28,20 +28,18 @@ public class ConexionDB {
     }
 
     public static void inicializarTodo() {
-        // 1. Crear las tablas
+
         inicializarTablas();
 
-        // 2. Darle un respiro al disco (opcional pero recomendado en Windows)
         try { Thread.sleep(200); } catch (InterruptedException e) {}
 
-        // 3. Activar el modo de escritura rápida
         try (Statement stmt = getConexion().createStatement()) {
             stmt.execute("PRAGMA journal_mode = WAL;");
         } catch (SQLException e) {
             System.out.println("Error configurando modo WAL: " + e.getMessage());
         }
     }
-    // Metodo para crear las tablas de forma automática si no existen
+
     public static void inicializarTablas() {
         Connection conn = getConexion();
         if (conn == null) return;
@@ -61,7 +59,7 @@ public class ConexionDB {
                 );
             """);
 
-            // 2. Tabla Productos (Relación N:1 con Categoría)
+            // 2. Tabla Productos 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS producto (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,7 +91,7 @@ public class ConexionDB {
                 );
             """);
 
-            // 4. Tabla Pedidos (Relación N:1 con Usuario)
+            // 4. Tabla Pedidos
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS pedido (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -108,7 +106,7 @@ public class ConexionDB {
                 );
             """);
 
-            // 5. Tabla DetallePedido (Relación Composición N:1 con Pedido y Producto)
+            // 5. Tabla DetallePedido 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS detalle_pedido (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -123,7 +121,7 @@ public class ConexionDB {
                 );
             """);
 
-            System.out.println("🗄️ Base de datos SQLite verificada/inicializada con éxito.");
+            System.out.println(" Base de datos SQLite verificada/inicializada con éxito.");
 
         } catch (SQLException e) {
             System.out.println("Error al ajustar las tablas en SQLite: " + e.getMessage());
