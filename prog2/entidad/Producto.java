@@ -7,7 +7,7 @@ public class Producto extends Base {
     private int stock;
     private String imagen;
     private Boolean disponible;
-    private Categoria categoria; // Relación N:1 con Categoria
+    private Categoria categoria; // Relación
 
     public Producto() {
         super();
