@@ -9,7 +9,6 @@ import java.util.List;
 
 public class CategoriaServicio {
 
-    // Metodo fundamental para validación y reuso
     public Categoria buscarPorId(Long id) {
         String sql = "SELECT * FROM categoria WHERE id = ? AND eliminado = 0";
         try (Connection conn = ConexionDB.getConexion();
@@ -28,7 +27,6 @@ public class CategoriaServicio {
         }
     }
 
-    // Versión para usar DENTRO de una transacción ya abierta (no abre ni cierra conexión propia)
     public Categoria buscarPorIdConConexion(Long id, Connection conn) throws SQLException {
         String sql = "SELECT * FROM categoria WHERE id = ? AND eliminado = 0";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -43,7 +41,6 @@ public class CategoriaServicio {
         }
     }
 
-    // HU-CAT-01: Listar categorías activas
     public List<Categoria> listar() {
         List<Categoria> lista = new ArrayList<>();
         String sql = "SELECT * FROM categoria WHERE eliminado = 0";
@@ -65,7 +62,6 @@ public class CategoriaServicio {
         return lista;
     }
 
-    // HU-CAT-02: Crear categoría
     public void create(String nombre, String descripcion) {
         String sql = "INSERT INTO categoria (nombre, descripcion, created_at) VALUES (?, ?, ?)";
         try (Connection conn = ConexionDB.getConexion();
@@ -81,9 +77,7 @@ public class CategoriaServicio {
         }
     }
 
-    // HU-CAT-03: Editar categoría existente
     public void editar(Long id, String nombre, String desc) {
-        // Validamos existencia usando el metodo centralizado
         buscarPorId(id);
 
         String sqlUpdate = "UPDATE categoria SET nombre = ?, descripcion = ? WHERE id = ?";
@@ -101,9 +95,7 @@ public class CategoriaServicio {
         }
     }
 
-    // HU-CAT-04: Eliminar categoría
     public void eliminar(Long id) {
-        // Validamos existencia antes de borrar
         buscarPorId(id);
 
         String sql = "UPDATE categoria SET eliminado = 1 WHERE id = ?";
