@@ -4,12 +4,10 @@ public class Categoria extends Base {
     private String nombre;
     private String descripcion;
 
-    // Constructor vacío
     public Categoria() {
         super();
     }
 
-    // Constructor completo
     public Categoria(Long id, String nombre, String descripcion) {
         super(id);
         this.nombre = nombre;
@@ -23,7 +21,6 @@ public class Categoria extends Base {
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    // El toString() nos va a servir muchísimo para los listados de consola
     @Override
     public String toString() {
         return "ID: " + getId() + " | Categoría: " + nombre + " (" + descripcion + ")";
