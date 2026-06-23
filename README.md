@@ -23,7 +23,8 @@ Conector: SQLite-JDBC Driver
 Patrones de Diseño: Singleton (Conexión)
 
                                                📂 Estructura del Proyecto
-<img width="443" height="167" alt="{11112ADA-3F8B-430D-8E58-FACAFBFDFFFD}" src="https://github.com/user-attachments/assets/583ae991-ab2d-4986-862f-435719178c36" />
+<img width="445" height="157" alt="{4B988458-4E38-4D06-B8FC-3DE668453609}" src="https://github.com/user-attachments/assets/1c33c72a-0fed-49e0-9ca5-07b3b380dd65" />
+
 
 
                                                ⚙️ Configuración y Ejecución
