@@ -63,8 +63,6 @@ public class Main {
             categoriaServicio.create("Bebidas", "Gaseosas y jugos bien fríos");
         }
 
-        // 2. BUSCAMOS LOS IDS REALES DE LA BASE DE DATOS
-        // Esto evita que le pases un ID que no existe.
         List<Categoria> lista = categoriaServicio.listar();
         Long idHamburguesas = null;
         Long idBebidas = null;
@@ -74,14 +72,12 @@ public class Main {
             if (c.getNombre().equalsIgnoreCase("Bebidas")) idBebidas = c.getId();
         }
 
-        // 3. Solo si encontramos los IDs, creamos los productos
         if (productoServicio.listar().isEmpty() && idHamburguesas != null && idBebidas != null) {
             productoServicio.crear("Burger Clásica", 4500.0, "Carne, queso y lechuga", 15, "burger.png", true, idHamburguesas);
             productoServicio.crear("Burger Completa", 5500.0, "Carne, queso, huevo y bacon", 10, "burger_comp.png", true, idHamburguesas);
             productoServicio.crear("Gaseosa Cola 500ml", 1200.0, "Línea Coca Cola", 30, "coca.png", true, idBebidas);
         }
 
-        // 4. Usuarios
         if (usuarioServicio.listar().isEmpty()) {
             usuarioServicio.crear("Juan", "Pérez", "juan@mail.com", "261555555", "1234", Rol.ADMIN);
             usuarioServicio.crear("María", "Gómez", "maria@mail.com", "261666666", "abcd", Rol.USUARIO);
