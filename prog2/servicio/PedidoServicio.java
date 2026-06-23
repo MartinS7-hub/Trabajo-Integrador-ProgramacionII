@@ -22,7 +22,6 @@ public class PedidoServicio {
     private final UsuarioServicio usuarioServicio = new UsuarioServicio();
     private final ProductoServicio productoServicio = new ProductoServicio();
 
-    // HU-PED-02: Crear Pedido con lógica Transaccional (ACID)
     public void crearPedido(Long usuarioId, FormaPago formaPago, List<DetallePedido> detallesInput) {
         if (detallesInput == null || detallesInput.isEmpty()) {
             throw new ReglaNegocioExcepcion("No se puede crear un pedido sin productos.");
@@ -62,7 +61,7 @@ public class PedidoServicio {
                 detallesProcesados.add(detalle);
             }
 
-            // 2. Insertar la cabecera del Pedido en la BD (la tabla conserva los campos de control)
+            // Inserta la cabecera del Pedido en la BD
             String sqlPedido = """
                 INSERT INTO pedido (usuario_id, fecha, estado, total, forma_pago, eliminado, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -71,8 +70,8 @@ public class PedidoServicio {
             long pedidoIdGenerated = -1;
             try (PreparedStatement pstmtPed = conn.prepareStatement(sqlPedido, Statement.RETURN_GENERATED_KEYS)) {
                 pstmtPed.setLong(1, usuario.getId());
-                pstmtPed.setString(2, LocalDateTime.now().format(formatter)); // fecha de control en BD
-                pstmtPed.setString(3, Estado.PENDIENTE.name());              // "PENDIENTE"
+                pstmtPed.setString(2, LocalDateTime.now().format(formatter)); 
+                pstmtPed.setString(3, Estado.PENDIENTE.name());              
                 pstmtPed.setDouble(4, totalPedido);
                 pstmtPed.setString(5, formaPago.name());                    // Guardamos el Enum como String
                 pstmtPed.setBoolean(6, false);
@@ -87,7 +86,7 @@ public class PedidoServicio {
                 }
             }
 
-            // 3. Insertar los detalles vinculados al ID del pedido
+            // Insertar los detalles vinculados al ID del pedido
             String sqlDetalle = """
                 INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, subtotal, eliminado, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)
@@ -109,13 +108,13 @@ public class PedidoServicio {
 
             // Confirmamos si no hubo fallos
             conn.commit();
-            System.out.println("🛒 ¡Pedido #" + pedidoIdGenerated + " registrado con éxito! Total: $" + totalPedido);
+            System.out.println(" ¡Pedido #" + pedidoIdGenerated + " registrado con éxito! Total: $" + totalPedido);
 
         } catch (Exception e) {
             if (conn != null) {
                 try {
                     conn.rollback();
-                    System.out.println("🔄 Transacción abortada. Se restauraron los cambios correctamente.");
+                    System.out.println(" Transacción abortada. Se restauraron los cambios correctamente.");
                 } catch (SQLException ex) {
                     System.out.println("Error al ejecutar rollback: " + ex.getMessage());
                 }
@@ -142,7 +141,6 @@ public class PedidoServicio {
     WHERE eliminado = 0
 """;
 
-        // 1. PRIMERA PASADA: leemos solo los datos crudos del pedido, sin llamar a otros servicios
         try (Connection conn = ConexionDB.getConexion();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
@@ -163,7 +161,6 @@ public class PedidoServicio {
                     ped.setFormaPago(FormaPago.valueOf(formaPagoStr));
                 }
 
-                // Guardamos solo el ID del usuario para resolverlo después
                 Usuario usuarioTemporal = new Usuario();
                 usuarioTemporal.setId(rs.getLong("usuario_id"));
                 ped.setUsuario(usuarioTemporal);
@@ -177,8 +174,6 @@ public class PedidoServicio {
             );
         }
 
-        // 2. SEGUNDA PASADA: aquí el ResultSet ya está cerrado, así que es seguro
-        //    llamar a otros servicios que abren su propia conexión
         for (Pedido ped : lista) {
             if (ped.getUsuario() != null && ped.getUsuario().getId() != null) {
                 try {
@@ -193,16 +188,15 @@ public class PedidoServicio {
         return lista;
     }
 
-    // EL MeTODO AUXILIAR AHORA ABRE SU PROPIA CONEXIÓN
     private List<DetallePedido> buscarDetallesDePedido(Long pedidoId) {
         List<DetallePedido> detalles = new ArrayList<>();
         String sql = "SELECT id, producto_id, cantidad, subtotal FROM detalle_pedido WHERE pedido_id = ? AND eliminado = 0";
 
-        try (Connection conn = ConexionDB.getConexion(); // ABRIR AQUÍ
+        try (Connection conn = ConexionDB.getConexion(); 
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, pedidoId);
             try (ResultSet rs = pstmt.executeQuery()) {
-                // ... (lógica de llenado) ...
+
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -210,7 +204,6 @@ public class PedidoServicio {
         return detalles;
     }
 
-    // HU-PED-04: Cancelar / Eliminar lógicamente un pedido
     public void eliminar(Long id) {
         buscarPorId(id);
 
@@ -220,13 +213,12 @@ public class PedidoServicio {
 
             pstmt.setLong(1, id);
             pstmt.executeUpdate();
-            System.out.println("🗑️ Pedido marcado como eliminado lógicamente.");
+            System.out.println(" Pedido marcado como eliminado lógicamente.");
         } catch (SQLException e) {
             throw new RuntimeException("Error al eliminar lógicamente el pedido: " + e.getMessage(), e);
         }
     }
 
-    // Auxiliar: Buscar pedido individual por ID
     public Pedido buscarPorId(Long id) {
         String sql = "SELECT id, usuario_id, estado, total, forma_pago FROM pedido WHERE id = ? AND eliminado = 0";
 
@@ -262,7 +254,6 @@ public class PedidoServicio {
         }
     }
 
-    // Metodo privado auxiliar para rellenar detalles
     private List<DetallePedido> buscarDetallesDePedido(Long pedidoId, Connection conn) throws SQLException {
         List<DetallePedido> detalles = new ArrayList<>();
         String sql = "SELECT id, producto_id, cantidad, subtotal FROM detalle_pedido WHERE pedido_id = ? AND eliminado = 0";
@@ -288,9 +279,9 @@ public class PedidoServicio {
         }
         return detalles;
     }
-    // CORRECCIÓN
+
     public void actualizarEstado(Long id, Estado est) {
-        buscarPorId(id); // Valida existencia
+        buscarPorId(id); 
         String sql = "UPDATE pedido SET estado = ? WHERE id = ? AND eliminado = 0";
         try (Connection conn = ConexionDB.getConexion();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -298,9 +289,9 @@ public class PedidoServicio {
             pstmt.setString(1, est.name());
             pstmt.setLong(2, id);
 
-            int filas = pstmt.executeUpdate(); // Solo una vez
+            int filas = pstmt.executeUpdate(); 
             if (filas == 0) throw new EntidadNoEncontradaExcepcion("Error al actualizar");
-            System.out.println("✅ Estado actualizado");
+            System.out.println(" Estado actualizado");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
