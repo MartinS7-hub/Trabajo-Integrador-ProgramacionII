@@ -17,9 +17,8 @@ public class ProductoServicio {
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     private final CategoriaServicio categoriaServicio = new CategoriaServicio();
 
-    // Firma corregida a 7 parámetros para coincidir con Main.java
     public void crear(String nombre, double precio, String descripcion, int stock, String imagen, boolean disponible, Long categoriaId) {
-        // Validaciones básicas de reglas de negocio
+
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new ReglaNegocioExcepcion("El nombre del producto no puede estar vacío.");
         }
@@ -55,7 +54,7 @@ public class ProductoServicio {
 
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    System.out.println("📦 Producto guardado en BD con ID: " + generatedKeys.getLong(1));
+                    System.out.println(" Producto guardado en BD con ID: " + generatedKeys.getLong(1));
                 }
             }
         } catch (SQLException e) {
@@ -63,12 +62,10 @@ public class ProductoServicio {
         }
     }
 
-    // HU-PROD-01: Listar productos activos
     public List<Producto> listar() {
         List<Producto> productos = new ArrayList<>();
         String sql = "SELECT * FROM producto WHERE eliminado = 0";
 
-        // 1. PRIMERA PASADA: Solo leemos los datos crudos (sin llamar a otros servicios)
         try (Connection conn = ConexionDB.getConexion();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
@@ -85,7 +82,6 @@ public class ProductoServicio {
                 prod.setEliminado(rs.getBoolean("eliminado"));
                 prod.setCreatedAt(LocalDateTime.parse(rs.getString("created_at"), formatter));
 
-                // Guardamos solo el ID para procesar la relación después
                 prod.setCategoria(new Categoria(rs.getLong("categoria_id"), null, null));
 
                 productos.add(prod);
@@ -94,14 +90,13 @@ public class ProductoServicio {
             throw new RuntimeException("Error al listar productos desde la BD: " + e.getMessage(), e);
         }
 
-        // 2. SEGUNDA PASADA: Enriquecemos los objetos (aquí el ResultSet ya está cerrado)
         for (Producto p : productos) {
             if (p.getCategoria() != null && p.getCategoria().getId() != null) {
                 try {
                     Categoria cat = categoriaServicio.buscarPorId(p.getCategoria().getId());
                     p.setCategoria(cat);
                 } catch (EntidadNoEncontradaExcepcion e) {
-                    p.setCategoria(null); // O manejar como prefieras
+                    p.setCategoria(null); 
                 }
             }
         }
@@ -109,9 +104,8 @@ public class ProductoServicio {
         return productos;
     }
 
-    // 🛠️ Firma corregida a 8 parámetros para coincidir con Main.java (agrega Boolean disponible)
     public void editar(Long id, String nombre, Double precio, String descripcion, Integer stock, String imagen, Boolean disponible, Long categoriaId) {
-        // Validamos que el producto exista
+    
         buscarPorId(id);
 
         StringBuilder sql = new StringBuilder("UPDATE producto SET ");
@@ -151,7 +145,7 @@ public class ProductoServicio {
 
         if (!tieneCampos) return;
 
-        sql.setLength(sql.length() - 2); // Quitar la última coma y espacio
+        sql.setLength(sql.length() - 2); 
         sql.append(" WHERE id = ? AND eliminado = 0");
 
         try (Connection conn = ConexionDB.getConexion();
@@ -177,7 +171,6 @@ public class ProductoServicio {
         }
     }
 
-    // HU-PROD-04: Baja lógica del producto
     public void eliminar(Long id) {
         buscarPorId(id);
 
@@ -192,7 +185,6 @@ public class ProductoServicio {
         }
     }
 
-    // Metodo clave para restar stock cuando se confirma un pedido
     public void reducirStock(Long id, int cantidad) {
         Producto prod = buscarPorId(id);
         if (prod.getStock() < cantidad) {
@@ -215,7 +207,6 @@ public class ProductoServicio {
         }
     }
 
-    // Versión para usar DENTRO de una transacción ya abierta (no abre ni cierra conexión propia)
     public Producto buscarPorIdConConexion(Long id, Connection conn) throws SQLException {
         String sql = "SELECT id, nombre, precio, descripcion, stock, imagen, disponible, categoria_id, eliminado, created_at FROM producto WHERE id = ? AND eliminado = 0";
 
@@ -242,11 +233,9 @@ public class ProductoServicio {
         }
     }
 
-    // Versión para usar DENTRO de una transacción ya abierta (no abre ni cierra conexión propia)
     public void reducirStockConConexion(Long id, int cantidad, Connection conn) throws SQLException {
         String sql = "UPDATE producto SET stock = ?, disponible = ? WHERE id = ?";
 
-        // Calculamos el nuevo stock a partir del producto ya consultado en esta misma transacción
         Producto prod = buscarPorIdConConexion(id, conn);
         if (prod.getStock() < cantidad) {
             throw new ReglaNegocioExcepcion("Stock insuficiente para el producto: " + prod.getNombre());
@@ -261,7 +250,6 @@ public class ProductoServicio {
         }
     }
 
-    // Auxiliar para buscar un producto por ID
     public Producto buscarPorId(Long id) {
         String sql = "SELECT id, nombre, precio, descripcion, stock, imagen, disponible, categoria_id, eliminado, created_at FROM producto WHERE id = ? AND eliminado = 0";
 
