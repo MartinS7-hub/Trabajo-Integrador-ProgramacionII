@@ -37,6 +37,10 @@ Tener configurado el driver de SQLite (sqlite-jdbc) en tu Classpath.
 
 Compila el proyecto.
 
+Configura el driver de SQLite el cual guardamos en la carpeta 📂 Drive SQLite.
+
+<img width="490" height="164" alt="{A4AA0B25-45CF-4B18-A439-FBF4B8B1F591}" src="https://github.com/user-attachments/assets/aa1ed0a2-fe92-4fd7-aabd-3eb50e70d889" />
+
 Ejecuta la clase integrado.prog2.Main.
 
 Al iniciarse, el sistema creará automáticamente el archivo food_store.db en la raíz del proyecto.
