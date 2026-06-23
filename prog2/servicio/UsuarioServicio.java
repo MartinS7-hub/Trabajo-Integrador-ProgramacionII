@@ -16,9 +16,9 @@ public class UsuarioServicio {
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-    // HU-USU-02: Registrar usuario con validación de Email único
+
     public void registrar(String nombre, String apellido, String mail, String celular, String contraseña, Rol rol) {
-        // Validaciones básicas de entrada
+
         if (nombre == null || nombre.trim().isEmpty() || apellido == null || apellido.trim().isEmpty()) {
             throw new ReglaNegocioExcepcion("El nombre y el apellido son obligatorios.");
         }
@@ -32,7 +32,6 @@ public class UsuarioServicio {
             throw new ReglaNegocioExcepcion("El rol asignado no es válido.");
         }
 
-        // 1. Validar que el mail no esté duplicado en usuarios activos (eliminado = 0)
         String sqlCheckMail = "SELECT COUNT(*) FROM usuario WHERE mail = ? AND eliminado = 0";
 
         try (Connection conn = ConexionDB.getConexion();
@@ -45,7 +44,6 @@ public class UsuarioServicio {
                 }
             }
 
-            // 2. Si el mail es único, hacemos el INSERT en la base de datos
             String sqlInsert = """
                 INSERT INTO usuario (nombre, apellido, mail, celular, contraseña, rol, eliminado, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -56,9 +54,9 @@ public class UsuarioServicio {
                 pstmtInsert.setString(2, apellido.trim());
                 pstmtInsert.setString(3, mail.trim().toLowerCase());
                 pstmtInsert.setString(4, celular);
-                pstmtInsert.setString(5, contraseña); // En un sistema real iría encriptada, acá pasa directo
+                pstmtInsert.setString(5, contraseña); 
                 pstmtInsert.setString(6, rol.name()); // Guardamos el Enum como String (ADMIN, CLIENTE, etc.)
-                pstmtInsert.setBoolean(7, false);     // eliminado = false
+                pstmtInsert.setBoolean(7, false);     
                 pstmtInsert.setString(8, LocalDateTime.now().format(formatter));
 
                 pstmtInsert.executeUpdate();
@@ -74,7 +72,6 @@ public class UsuarioServicio {
         }
     }
 
-    // HU-USU-01: Listar todos los usuarios activos
     public List<Usuario> listar() {
         List<Usuario> usuarios = new ArrayList<>();
         String sql = "SELECT id, nombre, apellido, mail, celular, contraseña, rol, eliminado, created_at FROM usuario WHERE eliminado = 0";
@@ -103,9 +100,9 @@ public class UsuarioServicio {
         return usuarios;
     }
 
-    // HU-USU-03: Editar perfil de usuario dinámicamente
+
     public void editar(Long id, String nombre, String apellido, String mail, String celular, String contraseña, Rol rol) {
-        // Validamos primero que el usuario exista
+ 
         buscarPorId(id);
 
         StringBuilder sql = new StringBuilder("UPDATE usuario SET ");
@@ -120,7 +117,7 @@ public class UsuarioServicio {
             tieneCampos = true;
         }
         if (mail != null && !mail.trim().isEmpty()) {
-            // Validar que el nuevo mail no lo tenga otra persona
+            
             validarMailParaEditar(id, mail.trim().toLowerCase());
             sql.append("mail = ?, ");
             tieneCampos = true;
@@ -140,7 +137,7 @@ public class UsuarioServicio {
 
         if (!tieneCampos) return;
 
-        sql.setLength(sql.length() - 2); // Remover la última coma
+        sql.setLength(sql.length() - 2); 
         sql.append(" WHERE id = ? AND eliminado = 0");
 
         try (Connection conn = ConexionDB.getConexion();
@@ -179,7 +176,6 @@ public class UsuarioServicio {
         }
     }
 
-    // Auxiliar para buscar un usuario específico por su ID
     public Usuario buscarPorId(Long id) {
         String sql = "SELECT id, nombre, apellido, mail, celular, contraseña, rol, eliminado, created_at FROM usuario WHERE id = ? AND eliminado = 0";
 
@@ -209,7 +205,6 @@ public class UsuarioServicio {
         }
     }
 
-    // Metodo auxiliar para evitar que al editar se elija el mail de OTRA persona
     private void validarMailParaEditar(Long usuarioIdActual, String nuevoMail) {
         String sql = "SELECT COUNT(*) FROM usuario WHERE mail = ? AND id <> ? AND eliminado = 0";
         try (Connection conn = ConexionDB.getConexion();
